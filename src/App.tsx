@@ -7,13 +7,18 @@ import CraeteAccount from "./routes/create-account";
 import styled, { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
 import { useEffect, useState } from "react";
-import LoadingScreen from "./routes/loading-screen";
+import LoadingScreen from "./components/loading-screen";
 import { auth } from "./firebase";
+import ProtectedRoute from "./components/protected-route";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />, // 인증된 사용자만 레이아웃 보이게 함
+    element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+    ), // 인증된 사용자만 레이아웃 보이게 함 // => 로그인한 경우에만 보임!
     children: [
       {
         path: "",
@@ -25,6 +30,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+  // 로그인 하면 layout 안 보이게 하려고 밖으로 뺌
   {
     path: "/login",
     element: <Login />,
@@ -56,7 +62,7 @@ const Wrapper = styled.div`
 function App() {
   const [isLoading, setLoading] = useState(true);
   const init = async () => {
-    // wait for firebase
+    // wait for firebase=
     await auth.authStateReady(); // 인증 상태가 준비되었는지 기다리는 함수
     // auth.을 하면 다양한 함수가 나옴 => 로그인, 로그아웃 등 가능
 
