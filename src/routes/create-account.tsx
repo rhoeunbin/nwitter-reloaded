@@ -1,5 +1,8 @@
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
 import styled from "styled-components";
+import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
   height: 100%;
@@ -41,6 +44,7 @@ const Error = styled.span`
 `;
 
 export default function CraeteAccount() {
+  const navigate = useNavigate();
   const [isLoading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -60,13 +64,29 @@ export default function CraeteAccount() {
     }
   };
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isLoading || name === "" || email === "" || password === "") return; // name, email, password = empty => 함수 종료
     try {
+      setLoading(true);
       // 계정 생성
+      const credentials = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      ); // firebase.ts에 이미 auth 인증사항 있음
+      // createUserWithEmailAndPassword : 사용자 계정을 만드려고 시도, 성공하면 자격증명을 받음, 성공하면 사용자는 애플리케이션에 즉시 로그인하게 됌(자동 로그인)
+      console.log(credentials.user);
+
       // 사용자의 프로필 이름 지정
+      await updateProfile(credentials.user, {
+        displayName: name,
+      });
+
       // 홈페이지로 리다이렉트
+      navigate("/");
     } catch (e) {
+      // setError
     } finally {
       setLoading(false);
     }
@@ -75,7 +95,7 @@ export default function CraeteAccount() {
 
   return (
     <Wrapper>
-      <Title>Log into X</Title>
+      <Title>Join X</Title>
       <Form onSubmit={onSubmit}>
         <Input
           onChange={onChange}
