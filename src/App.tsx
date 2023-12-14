@@ -6,6 +6,8 @@ import Login from "./routes/login";
 import CraeteAccount from "./routes/create-account";
 import { createGlobalStyle } from "styled-components";
 import reset from "styled-reset";
+import { useEffect, useState } from "react";
+import LoadingScreen from "./routes/loading-screen";
 
 const router = createBrowserRouter([
   {
@@ -43,11 +45,21 @@ const GlobalStyles = createGlobalStyle`
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
 `;
+
 function App() {
+  const [isLoading, setLoading] = useState(true);
+  const init = async () => {
+    // wait for firebase
+    setTimeout(() => setLoading(false), 2000); // 2초 뒤에 로딩 화면
+  };
+  useEffect(() => {
+    init();
+  }, []);
   return (
     <>
       <GlobalStyles />
-      <RouterProvider router={router} />
+      {isLoading ? <LoadingScreen /> : <RouterProvider router={router} />}
+      {/* 로딩화면 다음에 라우터 나오게 */}
     </>
   );
 }
