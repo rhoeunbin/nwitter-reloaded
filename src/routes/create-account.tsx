@@ -1,47 +1,17 @@
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
-import styled from "styled-components";
 import { auth } from "../firebase";
-import { useNavigate } from "react-router-dom";
-
-const Wrapper = styled.div`
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 420px;
-  padding: 50px 0px;
-`;
-
-const Title = styled.h1`
-  font-size: 42px;
-`;
-const Form = styled.form`
-  margin-top: 50px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-`;
-
-const Input = styled.input`
-  padding: 10px 20px;
-  border-radius: 50px;
-  border: none;
-  width: 100%;
-  font-size: 16px;
-  &[type="submit"] {
-    cursor: pointer;
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-`;
-
-const Error = styled.span`
-  font-weight: 600;
-  color: tomato;
-`;
+import { useNavigate, Link } from "react-router-dom";
+import { FirebaseError } from "firebase/app";
+import {
+  Error,
+  Input,
+  Switcher,
+  Title,
+  Wrapper,
+  Form,
+} from "../components/auth-components";
+import GithubButton from "../components/github-btn";
 
 export default function CraeteAccount() {
   const navigate = useNavigate();
@@ -66,6 +36,7 @@ export default function CraeteAccount() {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(""); // 한 번 더 클릭하면 에러 사라짐
     if (isLoading || name === "" || email === "" || password === "") return; // name, email, password = empty => 함수 종료
     try {
       setLoading(true);
@@ -87,6 +58,11 @@ export default function CraeteAccount() {
       navigate("/");
     } catch (e) {
       // setError
+      if (e instanceof FirebaseError) {
+        // cmd+click으로 확인 가능
+        // console.log(e.code, e.message);
+        setError(e.message); // 사용자에게 보여주기
+      }
     } finally {
       setLoading(false);
     }
@@ -128,6 +104,10 @@ export default function CraeteAccount() {
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
       {/* error 가 빈 문자열과 같지 않다면 에러메시지 보냄 */}
+      <Switcher>
+        Already an account? <Link to="/login">login</Link>
+      </Switcher>
+      <GithubButton />
     </Wrapper>
   );
 }
