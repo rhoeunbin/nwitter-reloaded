@@ -1,7 +1,8 @@
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import styled from "styled-components";
-import { auth, db } from "../firebase";
+import { auth, db, storage } from "../firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const Form = styled.form`
   display: flex;
@@ -81,12 +82,28 @@ export default function PostTweetForm() {
     if (!user || isLoading || tweet === "" || tweet.length > 190) return; // 유저가 로그인 상태인지 확인 => 아니면 끔
     try {
       setLoading(true);
-      await addDoc(collection(db, "tweets"), {
+      const doc = await addDoc(collection(db, "tweets"), {
         tweet,
         createdAt: Date.now(),
         username: user.displayName || "Anonymous", // displayName이 없으면 익명
         userId: user.uid, // 해당 유저의 권한이 있는지 확인
       });
+
+      if (file) {
+        const locationRef = ref(
+          storage,
+          `tweets /${user.uid}-${user.displayName}/${doc.id}` //TIoxlMQfv9Q7OFsTSunYFI7KeXP2-eun/ 이런식으로 저장된다
+        );
+        const result = await uploadBytes(locationRef, file);
+        // 업로드된 파일이 저장되는 폴더명과 파일명 지정 가능
+        const url = await getDownloadURL(result.ref);
+        await updateDoc(doc, {
+          photo: url,
+        });
+      }
+      // 업로드 되면 리셋
+      setTweet("");
+      setFile(null);
     } catch (e) {
       console.log(e);
     } finally {
