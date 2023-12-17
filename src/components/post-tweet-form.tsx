@@ -92,7 +92,9 @@ export default function PostTweetForm() {
       if (file) {
         const locationRef = ref(
           storage,
-          `tweets /${user.uid}-${user.displayName}/${doc.id}` //TIoxlMQfv9Q7OFsTSunYFI7KeXP2-eun/ 이런식으로 저장된다
+          // `tweets/${user.uid}-${user.displayName}/${doc.id}`
+          // 트윗을 삭제할 때 이미지도 같이 삭제하기 위해 바꿈
+          `tweets /${user.uid}/${doc.id}` //TIoxlMQfv9Q7OFsTSunYFI7KeXP2-eun/ 이런식으로 저장된다
         );
         const result = await uploadBytes(locationRef, file);
         // 업로드된 파일이 저장되는 폴더명과 파일명 지정 가능
