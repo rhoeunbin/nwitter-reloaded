@@ -1,7 +1,17 @@
 import styled from "styled-components";
-import { auth, storage } from "../firebase";
-import React, { useState } from "react";
+import { auth, db, storage } from "../firebase";
+import React, { useEffect, useState } from "react";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+  collection,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  where,
+} from "firebase/firestore";
+import { ITweet } from "../components/timeline";
+import Tweet from "../components/tweet";
 
 const Wrapper = styled.div`
   display: flex;
@@ -34,9 +44,17 @@ const Name = styled.span`
   font-size: 22px;
 `;
 
+const Tweets = styled.div`
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+`;
+
 export default function Profile() {
   const user = auth.currentUser;
   const [avatar, setAvatar] = useState(user?.photoURL);
+  const [tweets, setTweets] = useState<ITweet[]>([]);
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!user) return;
@@ -55,6 +73,32 @@ export default function Profile() {
       });
     }
   };
+
+  // 프로필에서 현재 로그인한 사용자의 글들만 가져오는 기능
+  const fetchTweets = async () => {
+    const tweetQuery = query(
+      collection(db, "tweets"), // 모든 트윗 중에서
+      where("userId", "==", user?.uid), // 현재 로그인한 사용자와 같다면 => 다양한 연산자 사용 가능
+      orderBy("createdAt", "desc"),
+      limit(25)
+    );
+    const snapshot = await getDocs(tweetQuery);
+    const tweets = snapshot.docs.map((doc) => {
+      const { tweet, createdAt, userId, username, photo } = doc.data();
+      return {
+        tweet,
+        createdAt,
+        userId,
+        username,
+        photo,
+        id: doc.id,
+      };
+    });
+    setTweets(tweets);
+  };
+  useEffect(() => {
+    fetchTweets();
+  }, []);
   return (
     <Wrapper>
       {/* 파일 열기 가능 */}
@@ -79,6 +123,11 @@ export default function Profile() {
         accept="image/*"
       ></AvatarInput>
       <Name>{user?.displayName ?? "Anonymous"}</Name>
+      <Tweets>
+        {tweets.map((tweet) => (
+          <Tweet key={tweet.id} {...tweet} />
+        ))}
+      </Tweets>
     </Wrapper>
   );
 }
