@@ -142,7 +142,7 @@ export default function Profile() {
       {/* 파일 열기 가능 */}
       <AvatarUpload htmlFor="avatar">
         {Boolean(avatar) ? (
-          <AvatarImg src={avatar} />
+          <AvatarImg src={avatar as string} />
         ) : (
           <svg
             fill="currentColor"
