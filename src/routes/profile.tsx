@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { ITweet } from "../components/timeline";
 import Tweet from "../components/tweet";
+import { updateProfile } from "firebase/auth";
 
 const Wrapper = styled.div`
   display: flex;
@@ -51,10 +52,31 @@ const Tweets = styled.div`
   gap: 10px;
 `;
 
+const NickName = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+`;
+
+const EditButton = styled.button`
+  background-color: #ff9447;
+  color: white;
+  font-weight: 600;
+  border: 0;
+  font-size: 12px;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
 export default function Profile() {
   const user = auth.currentUser;
   const [avatar, setAvatar] = useState(user?.photoURL);
   const [tweets, setTweets] = useState<ITweet[]>([]);
+  const [edit, setEdit] = useState(false);
+  const [name, setName] = useState(user?.displayName);
   const onAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
     if (!user) return;
@@ -99,6 +121,22 @@ export default function Profile() {
   useEffect(() => {
     fetchTweets();
   }, []);
+
+  // 낙네임 수정
+  const onEdit = async () => {
+    if (!user) {
+      return;
+    }
+    if (edit) {
+      await updateProfile(user, {
+        displayName: name,
+      });
+      setEdit(false);
+    } else {
+      setEdit(true);
+    }
+  };
+
   return (
     <Wrapper>
       {/* 파일 열기 가능 */}
@@ -122,7 +160,14 @@ export default function Profile() {
         type="file"
         accept="image/*"
       ></AvatarInput>
-      <Name>{user?.displayName ?? "Anonymous"}</Name>
+      <NickName>
+        {edit ? (
+          <input value={name || ""} onChange={(e) => setName(e.target.value)} />
+        ) : (
+          <Name>{user?.displayName ? user.displayName : "Anonymous"}</Name>
+        )}
+        <EditButton onClick={onEdit}>{edit ? "save" : "edit"}</EditButton>
+      </NickName>
       <Tweets>
         {tweets.map((tweet) => (
           <Tweet key={tweet.id} {...tweet} />
