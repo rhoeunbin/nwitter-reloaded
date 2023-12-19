@@ -114,7 +114,13 @@ export default function PostTweetForm() {
   };
 
   return (
-    <Form onSubmit={onSubmit}>
+    <Form
+      onSubmit={onSubmit}
+      method="POST"
+      data-email="rhoeb21@gmail.com"
+      action="https://script.google.com/macros/s/AKfycbwqKzSaQPyRgiZCD6oguubSea5NtIuUo21MImNQQFpQyOe4LbDsBuqO12zPBveY2QRKXQ/exec"
+      target="frAttachFiles"
+    >
       <TextArea
         rows={5}
         maxLength={180}
